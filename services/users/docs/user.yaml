@@ -1,0 +1,185 @@
+openapi: 3.0.0
+info:
+  title: Twitter Clone - User Service API
+  version: 1.0.0
+  description: Dokumentasi API untuk User Service, dipisahkan ke dalam file YAML.
+servers:
+  - url: http://localhost:5000/api/users # URL via API Gateway
+    description: Development Server
+
+tags:
+  - name: Users
+    description: Manajemen API Pengguna
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID unik pengguna (UUID)
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          description: Nama lengkap pengguna
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: Alamat email pengguna
+          example: "john.doe@example.com"
+        bio:
+          type: string
+          description: Biografi singkat pengguna
+          example: "Software Engineer from Jakarta"
+        profilePicture:
+          type: string
+          description: URL foto profil
+          example: "http://example.com/images/profile.jpg"
+        createdAt:
+          type: string
+          format: date-time
+          description: Waktu pembuatan akun
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        statusCode:
+          type: integer
+          example: 500
+        message:
+          type: string
+          example: Terjadi kesalahan pada server
+
+paths:
+  /register:
+    post:
+      summary: Mendaftarkan pengguna baru
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                  example: "Jane Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "jane.doe@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+      responses:
+        "201":
+          description: Pengguna berhasil dibuat
+        "400":
+          description: Input tidak valid (Bad Request)
+        "409":
+          description: Email sudah terdaftar (Conflict)
+
+  /login:
+    post:
+      summary: Login pengguna untuk mendapatkan token
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "jane.doe@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+      responses:
+        "200":
+          description: Login berhasil
+        "401":
+          description: Email atau password salah (Unauthorized)
+
+  /profile/{id}:
+    get:
+      summary: Mendapatkan profil publik pengguna berdasarkan ID
+      tags: [Users]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID pengguna (UUID)
+      responses:
+        "200":
+          description: Data profil pengguna berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Pengguna tidak ditemukan (Not Found)
+
+  /profile:
+    put:
+      summary: Memperbarui profil pengguna yang terautentikasi
+      tags: [Users]
+      parameters:
+        - in: header
+          name: x-user-id
+          schema:
+            type: string
+          required: true
+          description: "ID pengguna (disimulasikan via header, seharusnya dari token JWT)"
+      requestBody:
+        description: Data profil yang ingin diperbarui
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Jane Doe Updated"
+                bio:
+                  type: string
+                  example: "I love coding and coffee."
+      responses:
+        "200":
+          description: Profil berhasil diperbarui
+        "401":
+          description: Tidak terautentikasi (Unauthorized)
+        "404":
+          description: Pengguna tidak ditemukan (Not Found)
+
+  /account:
+    delete:
+      summary: Menghapus akun pengguna yang terautentikasi
+      tags: [Users]
+      parameters:
+        - in: header
+          name: x-user-id
+          schema:
+            type: string
+          required: true
+          description: "ID pengguna (disimulasikan via header, seharusnya dari token JWT)"
+      responses:
+        "200":
+          description: Akun berhasil dihapus
+        "401":
+          description: Tidak terautentikasi (Unauthorized)
+        "404":
+          description: Pengguna tidak ditemukan (Not Found)

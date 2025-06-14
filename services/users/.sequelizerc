@@ -1,0 +1,15 @@
+const path = require('path');
+
+module.exports = {
+  // Memberitahu CLI di mana file konfigurasi database berada
+  'config': path.resolve('config', 'config.js'),
+
+  // Path ke folder model
+  'models-path': path.resolve('models'),
+
+  // Path ke folder seeders
+  'seeders-path': path.resolve('seeders'),
+
+  // Path ke folder migrations
+  'migrations-path': path.resolve('migrations')
+};
