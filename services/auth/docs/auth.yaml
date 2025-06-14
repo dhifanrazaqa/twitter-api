@@ -1,0 +1,162 @@
+openapi: 3.0.0
+info:
+  title: Twitter Clone - Auth Service API
+  version: 1.0.0
+  description: Dokumentasi API untuk otorisasi, manajemen token JWT, dan verifikasi.
+servers:
+  - url: http://localhost:5000/api/auth # URL via API Gateway
+    description: Development Server
+
+tags:
+  - name: Authentication
+    description: Endpoint untuk manajemen token dan sesi
+
+components:
+  schemas:
+    TokenRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: ID unik pengguna yang sudah tervalidasi
+          example: "123e4567-e89b-12d3-a456-426614174000"
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          format: jwt
+          description: Token akses yang berumur pendek (short-lived)
+        refreshToken:
+          type: string
+          format: jwt
+          description: Token refresh yang berumur panjang (long-lived)
+    RefreshTokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          format: jwt
+          description: Refresh token yang valid
+    AccessTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          format: jwt
+          description: Token akses baru yang telah diperbarui
+    LogoutRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: ID pengguna yang ingin dicabut sesinya
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Token tidak valid"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /token:
+    post:
+      summary: Membuat sepasang token (access & refresh) baru
+      tags: [Authentication]
+      description: Endpoint ini dipanggil oleh layanan lain (misal, User Service) setelah kredensial pengguna berhasil divalidasi.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: Token berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "400":
+          description: Input tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /refresh:
+    post:
+      summary: Memperbarui access token menggunakan refresh token
+      tags: [Authentication]
+      description: Endpoint ini diakses langsung oleh klien/frontend.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+      responses:
+        "200":
+          description: Access token berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessTokenResponse"
+        "403":
+          description: Refresh token tidak valid atau sudah kedaluwarsa
+
+  /logout:
+    post:
+      summary: Logout pengguna dengan mencabut refresh token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+      responses:
+        "200":
+          description: Logout berhasil
+        "400":
+          description: User ID tidak valid
+
+  /verify:
+    get:
+      summary: Memverifikasi validitas sebuah access token
+      tags: [Authentication]
+      description: Endpoint ini digunakan untuk komunikasi antar layanan (service-to-service) untuk memvalidasi token.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Token valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token valid"
+                  user:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        format: uuid
+        "401":
+          description: Token tidak disediakan
+        "403":
+          description: Token tidak valid atau kedaluwarsa
