@@ -1,0 +1,154 @@
+services:
+  ## database
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes' 
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # Port untuk koneksi aplikasi
+      - "15672:15672" # Port untuk UI Management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/
+
+  ###gateway
+
+  # api-gateway:
+  #   build: ./api-gateway
+  #   container_name: api-gateway
+  #   restart: on-failure
+  #   ports:
+  #     - "${PORT_GATEWAY}:${PORT_GATEWAY}"
+  #   environment:
+  #     - PORT=${PORT_GATEWAY}
+  #   depends_on:
+  #     - user-service
+  #     - auth-service
+  #     - tweet-timeline-service
+  #     - follow-service
+  #     - notification-service
+
+  #########################################
+  # APPLICATION MICROSERVICES
+  #########################################
+
+  user-service:
+    build: ./services/users
+    container_name: user-service
+    restart: on-failure
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=5001
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    depends_on:
+      - mysql-db
+    ports:
+      - "5001:5001"
+
+  auth-service:
+    build: ./services/auth
+    container_name: auth-service
+    restart: on-failure
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=5002
+      - REDIS_URL=${REDIS_URL}
+      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+    depends_on:
+      - redis
+    ports:
+      - "5002:5002"
+
+  tweet-service:
+    build: ./services/tweets
+    container_name: tweet-service
+    restart: on-failure
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=5003
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - mysql-db
+      - auth-service
+      - follow-service
+      - rabbitmq
+    ports:
+      - "5003:5003"
+
+  follow-service:
+    build: ./services/follows
+    container_name: follow-service
+    restart: on-failure
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=5004
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - mysql-db
+      - auth-service
+      - rabbitmq
+    ports:
+      - "5004:5004"
+
+  notification-service:
+    build: ./services/notifications
+    container_name: notification-service
+    restart: on-failure
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=5005
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - mysql-db
+      - auth-service
+      - rabbitmq
+    ports:
+      - "5005:5005"
+
+###volumes
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:

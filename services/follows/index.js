@@ -11,10 +11,10 @@ const userRoutes = require("./routes");
 const errorHandler = require("./middleware/errorHandler");
 const notFoundHandler = require("./middleware/notFoundHandler");
 
-const app = express();
-const PORT = process.env.PORT || 5003;
+const messageBroker = require("./utils/messageBroker");
 
-const messageBroker = require('./utils/messageBroker');
+const app = express();
+const PORT = process.env.PORT || 5004;
 
 // Middleware
 app.use(cors());
@@ -41,7 +41,7 @@ const startServer = async () => {
   try {
     await sequelize.sync();
     logger.info("Database terhubung & tersinkronisasi");
-    await messageBroker.connect()
+    await messageBroker.connect();
     app.listen(PORT, () => {
       logger.info(`User Service berjalan di http://localhost:${PORT}`);
       logger.info(`API Docs tersedia di http://localhost:${PORT}/api-docs`);
