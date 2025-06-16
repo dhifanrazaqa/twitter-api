@@ -50,9 +50,7 @@ services:
       - follow-service
       - notification-service
 
-  #########################################
-  # APPLICATION MICROSERVICES
-  #########################################
+  # App Services
 
   user-service:
     build: ./services/users
