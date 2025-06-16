@@ -2,24 +2,47 @@ const Tweet = require("../models/tweet");
 const logger = require("../config/logger");
 const axios = require("axios");
 const { Op } = require("sequelize");
+const { publishEvent } = require('../utils/messageBroker');
 
 exports.createTweet = async (req, res, next) => {
   try {
     const { content, replyToTweetId } = req.body;
     const userId = req.user.userId;
 
+    let parentTweet = null; // Variabel untuk menyimpan tweet induk
+
+    // --- VALIDASI UTAMA DIMULAI DI SINI ---
+    // Jika ada replyToTweetId, cek validitasnya terlebih dahulu
     if (replyToTweetId) {
-      const parentTweet = await Tweet.findByPk(replyToTweetId);
+      parentTweet = await Tweet.findByPk(replyToTweetId);
       if (!parentTweet) {
-        return res
-          .status(404)
-          .json({ message: "Tweet yang Anda balas tidak ditemukan." });
+        // Jika tweet yang akan dibalas tidak ada, langsung kembalikan error 404
+        logger.warn(`User ${userId} mencoba membalas tweet ${replyToTweetId} yang tidak ada.`);
+        return res.status(404).json({ message: "Tweet yang ingin Anda balas tidak ditemukan." });
       }
     }
+    // --- VALIDASI SELESAI ---
 
+    // 1. Buat tweet di database. Sekarang kita yakin replyToTweetId (jika ada) 100% valid.
     const tweet = await Tweet.create({ content, userId, replyToTweetId });
+    logger.info(`Tweet baru (${tweet.id}) dibuat oleh user ${userId}`);
 
-    logger.info(`Tweet baru dibuat oleh user ${userId} dengan ID ${tweet.id}`);
+    // 2. Jika ini adalah balasan (bisa kita cek dari variabel parentTweet), terbitkan event
+    if (parentTweet) {
+      // Pastikan tidak mengirim notifikasi ke diri sendiri
+      if (parentTweet.userId !== userId) {
+        publishEvent({
+          type: 'NEW_REPLY',
+          data: {
+            replierId: userId,
+            originalPosterId: parentTweet.userId,
+            replyTweetId: tweet.id,
+          }
+        });
+        logger.info(`Event NEW_REPLY untuk tweet ${tweet.id} telah diterbitkan.`);
+      }
+    }
+    
     res.status(201).json({ message: "Tweet berhasil dibuat", tweet });
   } catch (error) {
     next(error);

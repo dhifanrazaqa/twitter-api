@@ -1,0 +1,110 @@
+openapi: 3.0.0
+info:
+  title: Twitter Clone - Follow Service
+  version: 1.0.0
+  description: API untuk mengelola relasi follow/unfollow.
+servers:
+  - url: http://localhost:5000/api/follow
+    description: Development Server
+tags:
+  - name: Follow
+    description: Operasi Follow/Unfollow
+
+components:
+  schemas:
+    FollowRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: ID pengguna yang akan di-follow.
+    FollowResponse:
+      type: object
+      properties:
+        followingId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /:
+    post:
+      summary: Mengikuti seorang pengguna
+      tags: [Follow]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowRequest'
+      responses:
+        '201':
+          description: Berhasil follow
+        '409':
+          description: Sudah follow pengguna ini
+  
+  /following/{userId}:
+    get:
+      summary: Mendapatkan daftar orang yang di-follow oleh seorang pengguna
+      tags: [Follow]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Daftar following
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FollowResponse'
+
+  /followers/{userId}:
+    get:
+      summary: Mendapatkan daftar orang yang menjadi follower seorang pengguna
+      tags: [Follow]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Daftar followers
+
+  /{userId}:
+    delete:
+      summary: Berhenti mengikuti seorang pengguna
+      tags: [Follow]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Berhasil unfollow
+        '404':
+          description: Relasi follow tidak ditemukan
