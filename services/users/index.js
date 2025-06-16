@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
+const sequelize = require('./config/database');
 require('dotenv').config();
 
 const logger = require('./config/logger');
@@ -36,6 +37,7 @@ app.use(errorHandler);
 // Sinkronisasi DB dan jalankan server
 const startServer = async () => {
   try {
+    await sequelize.sync();
     logger.info('Database terhubung & tersinkronisasi');
     app.listen(PORT, () => {
       logger.info(`User Service berjalan di http://localhost:${PORT}`);
