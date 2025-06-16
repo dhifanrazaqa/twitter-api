@@ -14,6 +14,10 @@ const notFoundHandler = require('./middleware/notFoundHandler');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// Log untuk menampilkan nilai DB_USER dan DB_PASSWORD
+console.log('ENV DB_USER:', process.env.DB_USER);
+console.log('ENV DB_PASSWORD:', process.env.DB_PASSWORD);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
