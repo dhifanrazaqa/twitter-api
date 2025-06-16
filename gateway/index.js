@@ -2,6 +2,7 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const rateLimit = require('express-rate-limit');
+const customThrottle = require('./customThrottle');
 
 const app = express();
 
@@ -12,10 +13,13 @@ const gatewayLimiter = rateLimit({
   message: 'Too many requests, please try again later.'
 });
 app.use(gatewayLimiter);
+app.use(customThrottle);
 
 // Proxy routes
 app.use('/users', createProxyMiddleware({ target: 'http://localhost:5001', changeOrigin: true }));
 app.use('/auth', createProxyMiddleware({ target: 'http://localhost:5002', changeOrigin: true }));
+app.use('/tweets', createProxyMiddleware({ target: 'http://localhost:5003', changeOrigin: true }));
+app.use('/follows', createProxyMiddleware({ target: 'http://localhost:5004', changeOrigin: true }));
 // Tambahkan proxy untuk service lain jika diperlukan
 
 const PORT = 3000;

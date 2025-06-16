@@ -8,9 +8,4 @@ const userLimiter = rateLimit({
   message: 'Terlalu banyak permintaan dari IP ini, coba lagi setelah 1 menit.'
 });
 
-// Throttling: delay 500ms antar request
-function throttle(req, res, next) {
-  setTimeout(next, 500); // delay 500ms
-}
-
-module.exports = { userLimiter, throttle };
+module.exports = { userLimiter };
