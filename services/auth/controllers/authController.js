@@ -4,8 +4,23 @@ const logger = require('../config/logger');
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
-const ACCESS_TOKEN_EXPIRATION = '15m';
+const ACCESS_TOKEN_EXPIRATION = '3h';
 const REFRESH_TOKEN_EXPIRATION = '7d';
+
+async function generateAndStoreTokens(userId) {
+  try {
+    const accessToken = jwt.sign({ userId }, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRATION });
+    const refreshToken = jwt.sign({ userId }, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRATION });
+
+    await redisClient.set(userId.toString(), refreshToken, 'EX', 7 * 24 * 60 * 60);
+
+    logger.info(`Token dibuat untuk user ID: ${userId}`);
+    return { accessToken, refreshToken };
+  } catch (error) {
+    logger.error('Gagal membuat token:', error);
+    throw new Error('Proses pembuatan token gagal.');
+  }
+}
 
 exports.generateTokens = async (req, res, next) => {
   try {
@@ -13,14 +28,8 @@ exports.generateTokens = async (req, res, next) => {
     if (!userId) {
       return res.status(400).json({ message: 'User ID dibutuhkan' });
     }
-
-    const accessToken = jwt.sign({ userId }, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRATION });
-    const refreshToken = jwt.sign({ userId }, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRATION });
-
-    await redisClient.set(userId.toString(), refreshToken, 'EX', 7 * 24 * 60 * 60);
-
-    logger.info(`Token dibuat untuk user ID: ${userId}`);
-    res.json({ accessToken, refreshToken });
+    const tokens = await generateAndStoreTokens(userId);
+    res.json(tokens);
   } catch (error) {
     next(error);
   }
@@ -64,3 +73,5 @@ exports.logout = async (req, res, next) => {
         next(error);
     }
 };
+
+module.exports.generateAndStoreTokens = generateAndStoreTokens;

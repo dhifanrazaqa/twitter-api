@@ -1,4 +1,3 @@
-// Basic API Gateway setup
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const rateLimit = require('express-rate-limit');
@@ -6,23 +5,21 @@ const customThrottle = require('./customThrottle');
 
 const app = express();
 
-// Global rate limiter for the gateway
 const gatewayLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 500,
+  windowMs: 1 * 60 * 1000,
+  max: 20,
   message: 'Too many requests, please try again later.'
 });
 app.use(gatewayLimiter);
 app.use(customThrottle);
 
-// Proxy routes
-app.use('/users', createProxyMiddleware({ target: 'http://localhost:5001', changeOrigin: true }));
-app.use('/auth', createProxyMiddleware({ target: 'http://localhost:5002', changeOrigin: true }));
-app.use('/tweets', createProxyMiddleware({ target: 'http://localhost:5003', changeOrigin: true }));
-app.use('/follows', createProxyMiddleware({ target: 'http://localhost:5004', changeOrigin: true }));
-// Tambahkan proxy untuk service lain jika diperlukan
+app.use('/users', createProxyMiddleware({ target: 'http://user-service:5001', changeOrigin: true }));
+app.use('/auth', createProxyMiddleware({ target: 'http://auth-service:5002', changeOrigin: true }));
+app.use('/tweets', createProxyMiddleware({ target: 'http://tweet-service:5003', changeOrigin: true }));
+app.use('/follows', createProxyMiddleware({ target: 'http://follow-service:5004', changeOrigin: true }));
+app.use('/notifications', createProxyMiddleware({ target: 'http://notification-service:5005', changeOrigin: true }));
 
-const PORT = 3000;
+const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
 });

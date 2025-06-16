@@ -1,3 +1,4 @@
+require("dotenv").config();
 require('./config/googlePassport');
 const express = require("express");
 const cors = require("cors");
@@ -5,7 +6,6 @@ const swaggerUi = require("swagger-ui-express");
 const morgan = require("morgan");
 const passport = require("passport");
 const session = require("express-session");
-require("dotenv").config();
 
 const logger = require("./config/logger");
 const swaggerSpec = require("./config/swagger");
@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 5002;
 
 // Middleware
 app.use(cors());
-app.use(authLimiter); // Rate limiting middleware
+app.use(authLimiter);
 app.use(express.json());
 app.use(session({ secret: process.env.SESSION_SECRET || 'secret', resave: false, saveUninitialized: false }));
 app.use(passport.initialize());

@@ -142,3 +142,34 @@ exports.deleteAccount = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.findOrCreateFromOAuth = async (req, res, next) => {
+  try {
+    const { email, googleId, name, profilePicture } = req.body;
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ message: "Email dari profil OAuth dibutuhkan." });
+    }
+
+    const [user, created] = await User.findOrCreate({
+      where: { email: email },
+      defaults: {
+        googleId: googleId,
+        name: name,
+        profilePicture: profilePicture,
+        password: null,
+      },
+    });
+
+    if (!created && !user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+};

@@ -1,4 +1,3 @@
-// Custom throttle middleware: only throttle if 3 rapid requests within 2 seconds
 const ipRequestTimes = {};
 const THROTTLE_DELAY = 500; // ms
 const RAPID_REQUEST_LIMIT = 3;
@@ -10,12 +9,10 @@ function customThrottle(req, res, next) {
   if (!ipRequestTimes[ip]) {
     ipRequestTimes[ip] = [];
   }
-  // Remove timestamps older than RAPID_WINDOW
   ipRequestTimes[ip] = ipRequestTimes[ip].filter(ts => now - ts < RAPID_WINDOW);
   ipRequestTimes[ip].push(now);
 
   if (ipRequestTimes[ip].length >= RAPID_REQUEST_LIMIT) {
-    // Throttle: delay this request
     setTimeout(next, THROTTLE_DELAY);
   } else {
     next();

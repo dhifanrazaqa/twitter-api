@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: Dokumentasi API untuk otorisasi, manajemen token JWT, dan verifikasi.
 servers:
-  - url: http://localhost:5000/api/auth # URL via API Gateway
+  - url: http://localhost:5000/api/auth
     description: Development Server
 
 tags:

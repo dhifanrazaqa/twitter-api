@@ -9,5 +9,6 @@ router.post('/login', loginValidation, userController.login);
 router.get('/profile/:id', userController.getProfile);
 router.put('/profile', authenticate, updateProfileValidation, userController.updateProfile);
 router.delete('/account', authenticate, userController.deleteAccount);
+router.post('/oauth/find-or-create', userController.findOrCreateFromOAuth);
 
 module.exports = router;

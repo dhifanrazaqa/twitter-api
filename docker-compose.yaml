@@ -37,20 +37,18 @@ services:
 
   ###gateway
 
-  # api-gateway:
-  #   build: ./api-gateway
-  #   container_name: api-gateway
-  #   restart: on-failure
-  #   ports:
-  #     - "${PORT_GATEWAY}:${PORT_GATEWAY}"
-  #   environment:
-  #     - PORT=${PORT_GATEWAY}
-  #   depends_on:
-  #     - user-service
-  #     - auth-service
-  #     - tweet-timeline-service
-  #     - follow-service
-  #     - notification-service
+  api-gateway:
+    build: ./gateway
+    container_name: api-gateway
+    restart: on-failure
+    ports:
+      - "5000:5000"
+    depends_on:
+      - user-service
+      - auth-service
+      - tweet-service
+      - follow-service
+      - notification-service
 
   #########################################
   # APPLICATION MICROSERVICES
@@ -85,6 +83,10 @@ services:
       - REDIS_DB=${REDIS_DB}
       - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
       - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
     depends_on:
       - redis
     ports:

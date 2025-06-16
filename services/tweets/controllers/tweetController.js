@@ -2,7 +2,7 @@ const Tweet = require("../models/tweet");
 const logger = require("../config/logger");
 const axios = require("axios");
 const { Op } = require("sequelize");
-const { publishEvent } = require('../utils/messageBroker');
+const { publishEvent } = require("../utils/messageBroker");
 
 exports.createTweet = async (req, res, next) => {
   try {
@@ -14,8 +14,12 @@ exports.createTweet = async (req, res, next) => {
     if (replyToTweetId) {
       parentTweet = await Tweet.findByPk(replyToTweetId);
       if (!parentTweet) {
-        logger.warn(`User ${userId} mencoba membalas tweet ${replyToTweetId} yang tidak ada.`);
-        return res.status(404).json({ message: "Tweet yang ingin Anda balas tidak ditemukan." });
+        logger.warn(
+          `User ${userId} mencoba membalas tweet ${replyToTweetId} yang tidak ada.`
+        );
+        return res
+          .status(404)
+          .json({ message: "Tweet yang ingin Anda balas tidak ditemukan." });
       }
     }
     const tweet = await Tweet.create({ content, userId, replyToTweetId });
@@ -24,17 +28,19 @@ exports.createTweet = async (req, res, next) => {
     if (parentTweet) {
       if (parentTweet.userId !== userId) {
         publishEvent({
-          type: 'NEW_REPLY',
+          type: "NEW_REPLY",
           data: {
             replierId: userId,
             originalPosterId: parentTweet.userId,
             replyTweetId: tweet.id,
-          }
+          },
         });
-        logger.info(`Event NEW_REPLY untuk tweet ${tweet.id} telah diterbitkan.`);
+        logger.info(
+          `Event NEW_REPLY untuk tweet ${tweet.id} telah diterbitkan.`
+        );
       }
     }
-    
+
     res.status(201).json({ message: "Tweet berhasil dibuat", tweet });
   } catch (error) {
     next(error);
@@ -44,8 +50,8 @@ exports.createTweet = async (req, res, next) => {
 exports.getTimeline = async (req, res, next) => {
   try {
     const userId = req.user.userId;
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 20;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
 
     let followingIds = [];
@@ -154,13 +160,11 @@ exports.getRepliesForTweet = async (req, res, next) => {
       order: [["createdAt", "ASC"]],
     });
 
-    res
-      .status(200)
-      .json({
-        message: "Berhasil mendapatkan balasan untuk tweet ini.",
-        tweet: parentTweet,
-        replies,
-      });
+    res.status(200).json({
+      message: "Berhasil mendapatkan balasan untuk tweet ini.",
+      tweet: parentTweet,
+      replies,
+    });
   } catch (error) {
     next(error);
   }

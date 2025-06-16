@@ -53,6 +53,11 @@ components:
         message:
           type: string
           example: Terjadi kesalahan pada server
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
 paths:
   /register:
@@ -137,13 +142,8 @@ paths:
     put:
       summary: Memperbarui profil pengguna yang terautentikasi
       tags: [Users]
-      parameters:
-        - in: header
-          name: x-user-id
-          schema:
-            type: string
-          required: true
-          description: "ID pengguna (disimulasikan via header, seharusnya dari token JWT)"
+      security: # <-- TAMBAHKAN INI
+        - bearerAuth: []
       requestBody:
         description: Data profil yang ingin diperbarui
         content:
@@ -169,13 +169,8 @@ paths:
     delete:
       summary: Menghapus akun pengguna yang terautentikasi
       tags: [Users]
-      parameters:
-        - in: header
-          name: x-user-id
-          schema:
-            type: string
-          required: true
-          description: "ID pengguna (disimulasikan via header, seharusnya dari token JWT)"
+      security: # <-- TAMBAHKAN INI
+        - bearerAuth: []
       responses:
         "200":
           description: Akun berhasil dihapus
