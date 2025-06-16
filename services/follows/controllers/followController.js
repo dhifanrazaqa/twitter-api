@@ -16,7 +16,7 @@ exports.followUser = async (req, res, next) => {
     }
 
     try {
-      const userServiceUrl = `http://localhost:5001/profile/${followingId}`;
+      const userServiceUrl = `http://user-service:5001/profile/${followingId}`;
       await axios.get(userServiceUrl);
       logger.info(`Validasi berhasil: User ${followingId} ditemukan.`);
     } catch (error) {

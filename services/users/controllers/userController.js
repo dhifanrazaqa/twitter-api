@@ -45,7 +45,7 @@ exports.login = async (req, res, next) => {
       throw error;
     }
 
-    const authServiceUrl = "http://localhost:5002/token/";
+    const authServiceUrl = "http://auth-service:5002/token/";
 
     let tokenResponse;
     try {

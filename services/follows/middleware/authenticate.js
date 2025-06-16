@@ -12,7 +12,7 @@ const authenticate = async (req, res, next) => {
   }
 
   try {
-    const authServiceUrl = "http://localhost:5002/verify";
+    const authServiceUrl = "http://auth-service:5002/verify";
 
     const response = await axios.get(authServiceUrl, {
       headers: {

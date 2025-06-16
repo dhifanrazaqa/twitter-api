@@ -9,27 +9,19 @@ exports.createTweet = async (req, res, next) => {
     const { content, replyToTweetId } = req.body;
     const userId = req.user.userId;
 
-    let parentTweet = null; // Variabel untuk menyimpan tweet induk
+    let parentTweet = null;
 
-    // --- VALIDASI UTAMA DIMULAI DI SINI ---
-    // Jika ada replyToTweetId, cek validitasnya terlebih dahulu
     if (replyToTweetId) {
       parentTweet = await Tweet.findByPk(replyToTweetId);
       if (!parentTweet) {
-        // Jika tweet yang akan dibalas tidak ada, langsung kembalikan error 404
         logger.warn(`User ${userId} mencoba membalas tweet ${replyToTweetId} yang tidak ada.`);
         return res.status(404).json({ message: "Tweet yang ingin Anda balas tidak ditemukan." });
       }
     }
-    // --- VALIDASI SELESAI ---
-
-    // 1. Buat tweet di database. Sekarang kita yakin replyToTweetId (jika ada) 100% valid.
     const tweet = await Tweet.create({ content, userId, replyToTweetId });
     logger.info(`Tweet baru (${tweet.id}) dibuat oleh user ${userId}`);
 
-    // 2. Jika ini adalah balasan (bisa kita cek dari variabel parentTweet), terbitkan event
     if (parentTweet) {
-      // Pastikan tidak mengirim notifikasi ke diri sendiri
       if (parentTweet.userId !== userId) {
         publishEvent({
           type: 'NEW_REPLY',
@@ -58,7 +50,7 @@ exports.getTimeline = async (req, res, next) => {
 
     let followingIds = [];
     try {
-      const followServiceUrl = `http://localhost:5004/following/${userId}`;
+      const followServiceUrl = `http://follow-service:5004/following/${userId}`;
       const response = await axios.get(followServiceUrl);
       followingIds = response.data.map((item) => item.followingId);
     } catch (err) {
