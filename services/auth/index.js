@@ -9,12 +9,14 @@ const swaggerSpec = require("./config/swagger");
 const authRoutes = require("./routes");
 const errorHandler = require("./middleware/errorHandler");
 const notFoundHandler = require("./middleware/notFoundHandler");
+const authLimiter = require('./middleware/rateLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 5002;
 
 // Middleware
 app.use(cors());
+app.use(authLimiter); // Rate limiting middleware
 app.use(express.json());
 
 // HTTP Logging
