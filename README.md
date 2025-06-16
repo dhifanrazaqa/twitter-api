@@ -29,8 +29,8 @@ Setiap fitur utama Twitter seperti autentikasi, tweet, notifikasi, dan lainnya d
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/username/twitter-api-microservices.git
-cd twitter-api-microservices
+git clone https://github.com/username/twitter-api.git
+cd twitter-api
 ```
 
 ### 2. Salin & Edit Environment Variable
@@ -52,8 +52,8 @@ docker compose up -d
 
 ### 5. Akses Service
 - API Gateway: [http://localhost:5000](http://localhost:5000)
-- Auth Service (OAuth): [http://localhost:5002](http://localhost:5002)
 - Users: [http://localhost:5001](http://localhost:5001)
+- Auth Service (OAuth): [http://localhost:5002](http://localhost:5002)
 - Tweets: [http://localhost:5003](http://localhost:5003)
 - Follows: [http://localhost:5004](http://localhost:5004)
 - Notifications: [http://localhost:5005](http://localhost:5005)
