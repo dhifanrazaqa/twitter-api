@@ -29,7 +29,7 @@ Setiap fitur utama Twitter seperti autentikasi, tweet, notifikasi, dan lainnya d
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/username/twitter-api.git
+git clone https://github.com/dhifanrazaqa/twitter-api.git
 cd twitter-api
 ```
 
