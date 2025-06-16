@@ -10,6 +10,7 @@ const swaggerSpec = require('./config/swagger');
 const userRoutes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 const notFoundHandler = require('./middleware/notFoundHandler');
+const { userLimiter, throttle } = require('./middleware/rateLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -20,6 +21,8 @@ console.log('ENV DB_PASSWORD:', process.env.DB_PASSWORD);
 
 // Middleware
 app.use(cors());
+app.use(userLimiter); // Rate limiting middleware
+app.use(throttle); // Throttling middleware (delay antar request)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
