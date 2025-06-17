@@ -33,7 +33,7 @@ exports.followUser = async (req, res, next) => {
 
     await Follow.create({ followerId, followingId });
 
-    //Terbit event rabbitmq
+    //Menerbitkan event rabbitmq
     publishEvent({
       type: 'NEW_FOLLOWER',
       data: { followerId, followingId }
